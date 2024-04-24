@@ -437,23 +437,22 @@ type PublishConfig struct {
 	ConfirmDelivery bool
 }
 
-// RequeuePredicate generates QueueName based on the topic.
+// RequeuePredicate determines whether the message should be requeued when Nacked based on the Delivery Header.
 type RequeuePredicate func(header amqp.Table) bool
 
-// AlwaysRequeueOnNack generates queueName equal to the topic.
-func AlwaysRequeueOnNack(header amqp.Table) bool {
+// AlwaysRequeueOnNack will always return true and the message will always be requeued when nacked.
+func AlwaysRequeueOnNack(_ amqp.Table) bool {
 	return true
 }
 
-// NeverRequeueOnNack generates queueName equal to the topic.
-func NeverRequeueOnNack(header amqp.Table) bool {
+// NeverRequeueOnNack will always return false and the message will never be requeued when nacked.
+func NeverRequeueOnNack(_ amqp.Table) bool {
 	return false
 }
 
 type ConsumeConfig struct {
-	// RequeueOnNack will provide a boolean value that determines weather or not the message will be requeued when
-	// nacked. The values in the amqp.Delivery.Header can be evaluated to determine if the message should be requeued
-	// when nacked.
+	// RequeueOnNack will provide a boolean value that determines whether the message will be requeued when nacked.
+	// The values in the Delivery Header can be evaluated to determine if the message should be requeued when nacked.
 	RequeueOnNack RequeuePredicate
 
 	// The consumer is identified by a string that is unique and scoped for all
