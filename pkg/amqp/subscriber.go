@@ -400,5 +400,5 @@ func (s *subscription) processMessage(
 }
 
 func (s *subscription) nackMsg(amqpMsg amqp.Delivery) error {
-	return amqpMsg.Nack(false, !s.config.Consume.NoRequeueOnNack)
+	return amqpMsg.Nack(false, s.config.Consume.RequeueOnNack(amqpMsg.Headers))
 }

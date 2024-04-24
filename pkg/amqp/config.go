@@ -53,6 +53,7 @@ func NewDurablePubSubConfig(amqpURI string, generateQueueName QueueNameGenerator
 			},
 		},
 		Consume: ConsumeConfig{
+			RequeueOnNack: AlwaysRequeueOnNack,
 			Qos: QosConfig{
 				PrefetchCount: 1,
 			},
@@ -99,6 +100,7 @@ func NewNonDurablePubSubConfig(amqpURI string, generateQueueName QueueNameGenera
 			},
 		},
 		Consume: ConsumeConfig{
+			RequeueOnNack: AlwaysRequeueOnNack,
 			Qos: QosConfig{
 				PrefetchCount: 1,
 			},
@@ -145,6 +147,7 @@ func NewDurableQueueConfig(amqpURI string) Config {
 			},
 		},
 		Consume: ConsumeConfig{
+			RequeueOnNack: AlwaysRequeueOnNack,
 			Qos: QosConfig{
 				PrefetchCount: 1,
 			},
@@ -189,6 +192,7 @@ func NewNonDurableQueueConfig(amqpURI string) Config {
 			},
 		},
 		Consume: ConsumeConfig{
+			RequeueOnNack: AlwaysRequeueOnNack,
 			Qos: QosConfig{
 				PrefetchCount: 1,
 			},
@@ -433,9 +437,24 @@ type PublishConfig struct {
 	ConfirmDelivery bool
 }
 
+// RequeuePredicate generates QueueName based on the topic.
+type RequeuePredicate func(header amqp.Table) bool
+
+// AlwaysRequeueOnNack generates queueName equal to the topic.
+func AlwaysRequeueOnNack(header amqp.Table) bool {
+	return true
+}
+
+// NeverRequeueOnNack generates queueName equal to the topic.
+func NeverRequeueOnNack(header amqp.Table) bool {
+	return false
+}
+
 type ConsumeConfig struct {
-	// When true, message will be not requeued when nacked.
-	NoRequeueOnNack bool
+	// RequeueOnNack will provide a boolean value that determines weather or not the message will be requeued when
+	// nacked. The values in the amqp.Delivery.Header can be evaluated to determine if the message should be requeued
+	// when nacked.
+	RequeueOnNack RequeuePredicate
 
 	// The consumer is identified by a string that is unique and scoped for all
 	// consumers on this channel.  If you wish to eventually cancel the consumer, use
